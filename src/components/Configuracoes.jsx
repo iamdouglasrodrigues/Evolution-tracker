@@ -231,7 +231,13 @@ function HabitEditor({ onChanged }) {
             <span className="font-medium text-sm">{h.name}</span>
             <span className="text-xs text-text-muted ml-2">
               {TYPE_LABELS[h.type]}
-              {h.type === 'quantitative' && ` ${h.rule} ${h.goal} ${h.unit}`}
+              {h.type === 'quantitative' && h.unit === 'min' && (() => {
+                const m = parseFloat(h.goal) || 0
+                const gh = Math.floor(m / 60)
+                const gm = m % 60
+                return ` ${h.rule} ${gh > 0 ? `${gh}h${gm > 0 ? `${gm}min` : ''}` : `${gm}min`}`
+              })()}
+              {h.type === 'quantitative' && h.unit !== 'min' && ` ${h.rule} ${h.goal} ${h.unit}`}
               {h.type === 'time' && ` ${h.rule} ${h.goal}`}
             </span>
           </div>
@@ -303,19 +309,53 @@ function HabitEditor({ onChanged }) {
             </div>
           </div>
           {newH.type === 'quantitative' && (
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-text-muted mb-1">Regra</label>
-                <select value={newH.rule} onChange={e => setNewH(v => ({ ...v, rule: e.target.value }))} className="border border-border rounded-lg px-3 py-2 text-sm w-full bg-input-bg"><option>≥</option><option>≤</option><option>=</option></select>
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-text-muted mb-1">Regra</label>
+                  <select value={newH.rule} onChange={e => setNewH(v => ({ ...v, rule: e.target.value }))} className="border border-border rounded-lg px-3 py-2 text-sm w-full bg-input-bg"><option>≥</option><option>≤</option><option>=</option></select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-muted mb-1">Unidade</label>
+                  <input value={newH.unit} onChange={e => setNewH(v => ({ ...v, unit: e.target.value }))} className="border border-border rounded-lg px-3 py-2 text-sm w-full bg-input-bg" placeholder="min, kg, L..." />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-text-muted mb-1">Meta</label>
-                <input value={newH.goal} onChange={e => setNewH(v => ({ ...v, goal: e.target.value }))} className="border border-border rounded-lg px-3 py-2 text-sm w-full bg-input-bg" placeholder="30" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-text-muted mb-1">Unidade</label>
-                <input value={newH.unit} onChange={e => setNewH(v => ({ ...v, unit: e.target.value }))} className="border border-border rounded-lg px-3 py-2 text-sm w-full bg-input-bg" placeholder="min" />
-              </div>
+              {newH.unit === 'min' ? (
+                <div>
+                  <label className="block text-sm font-medium text-text-muted mb-1">Meta (horas e minutos)</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      value={Math.floor((parseFloat(newH.goal) || 0) / 60) || ''}
+                      onChange={e => {
+                        const h = Math.max(0, parseInt(e.target.value) || 0)
+                        const m = (parseFloat(newH.goal) || 0) % 60
+                        setNewH(v => ({ ...v, goal: String(h * 60 + m) }))
+                      }}
+                      className="border border-border rounded-lg px-3 py-2 text-sm w-20 bg-input-bg text-center"
+                      min="0" placeholder="0"
+                    />
+                    <span className="text-sm text-text-muted font-medium">h</span>
+                    <input
+                      type="number"
+                      value={(parseFloat(newH.goal) || 0) % 60 || ''}
+                      onChange={e => {
+                        const m = Math.min(59, Math.max(0, parseInt(e.target.value) || 0))
+                        const h = Math.floor((parseFloat(newH.goal) || 0) / 60)
+                        setNewH(v => ({ ...v, goal: String(h * 60 + m) }))
+                      }}
+                      className="border border-border rounded-lg px-3 py-2 text-sm w-20 bg-input-bg text-center"
+                      min="0" max="59" placeholder="0"
+                    />
+                    <span className="text-sm text-text-muted font-medium">min</span>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium text-text-muted mb-1">Meta</label>
+                  <input value={newH.goal} onChange={e => setNewH(v => ({ ...v, goal: e.target.value }))} className="border border-border rounded-lg px-3 py-2 text-sm w-full bg-input-bg" placeholder="30" />
+                </div>
+              )}
             </div>
           )}
           {newH.type === 'time' && (

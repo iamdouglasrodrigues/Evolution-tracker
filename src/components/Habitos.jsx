@@ -180,12 +180,82 @@ export default function Habitos() {
     const val = dayLog[habit.id]
     const met = isHabitSuccess(habit, val)
     const isSaved = savedFeedback === habit.id
+    const isMinutes = habit.unit === 'min'
+
+    // For minute-based habits, show hours:minutes input
+    if (isMinutes) {
+      const totalMin = parseFloat(val) || 0
+      const hours = Math.floor(totalMin / 60)
+      const mins = totalMin % 60
+      const goalMin = parseFloat(habit.goal) || 0
+      const goalH = Math.floor(goalMin / 60)
+      const goalM = goalMin % 60
+      const goalLabel = goalH > 0 ? `${goalH}h${goalM > 0 ? `${goalM}min` : ''}` : `${goalM}min`
+
+      const updateFromHM = (h, m) => {
+        const total = (h * 60) + m
+        setHabitValue(habit.id, total > 0 ? total : null)
+      }
+
+      return (
+        <div className={`flex flex-wrap items-center gap-2 transition-all ${isSaved ? 'animate-pulse-success' : ''}`}>
+          <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5 bg-input-bg border border-border rounded-lg px-1">
+              <input
+                type="number"
+                value={val != null ? hours : ''}
+                onChange={e => {
+                  const h = Math.max(0, parseInt(e.target.value) || 0)
+                  updateFromHM(h, mins)
+                }}
+                placeholder="0"
+                className="w-10 py-1.5 text-sm text-center bg-transparent outline-none"
+                min="0"
+                aria-label={`Horas de ${habit.name}`}
+              />
+              <span className="text-xs text-text-muted font-medium">h</span>
+              <input
+                type="number"
+                value={val != null ? mins : ''}
+                onChange={e => {
+                  const m = Math.min(59, Math.max(0, parseInt(e.target.value) || 0))
+                  updateFromHM(hours, m)
+                }}
+                placeholder="00"
+                className="w-10 py-1.5 text-sm text-center bg-transparent outline-none"
+                min="0" max="59"
+                aria-label={`Minutos de ${habit.name}`}
+              />
+              <span className="text-xs text-text-muted font-medium">min</span>
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <button
+                onClick={() => setHabitValue(habit.id, (parseFloat(val) || 0) + 5)}
+                className="w-7 h-5 rounded bg-gray-100 dark:bg-gray-700 text-text-muted hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center cursor-pointer text-xs font-bold transition-colors"
+                aria-label="Aumentar 5 min"
+              >+</button>
+              <button
+                onClick={() => setHabitValue(habit.id, Math.max(0, (parseFloat(val) || 0) - 5))}
+                className="w-7 h-5 rounded bg-gray-100 dark:bg-gray-700 text-text-muted hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center cursor-pointer text-xs font-bold transition-colors"
+                aria-label="Diminuir 5 min"
+              >−</button>
+            </div>
+          </div>
+          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${val != null ? (met ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger') : 'bg-gray-100 dark:bg-gray-700 text-text-muted'}`}>
+            Meta: {habit.rule} {goalLabel}
+          </span>
+          <button onClick={() => clearHabitValue(habit.id)} className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 text-text-muted hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer transition-colors" aria-label="Limpar">
+            <Trash2 size={14} />
+          </button>
+        </div>
+      )
+    }
 
     return (
       <div className={`flex flex-wrap items-center gap-2 transition-all ${isSaved ? 'animate-pulse-success' : ''}`}>
         <div className="flex items-center gap-1">
           <button
-            onClick={() => setHabitValue(habit.id, Math.max(0, (parseFloat(val) || 0) - (habit.unit === 'min' ? 5 : 0.5)))}
+            onClick={() => setHabitValue(habit.id, Math.max(0, (parseFloat(val) || 0) - 0.5))}
             className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-700 text-text-muted hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center cursor-pointer font-bold text-lg transition-colors"
             aria-label="Diminuir"
           >−</button>
@@ -195,11 +265,11 @@ export default function Habitos() {
             onChange={e => setHabitValue(habit.id, e.target.value === '' ? null : parseFloat(e.target.value))}
             placeholder="0"
             className="border border-border rounded-lg px-2 py-1.5 text-sm w-20 bg-input-bg text-center"
-            min="0" step={habit.unit === 'min' ? '5' : '0.1'}
+            min="0" step="0.1"
             aria-label={`Valor de ${habit.name}`}
           />
           <button
-            onClick={() => setHabitValue(habit.id, (parseFloat(val) || 0) + (habit.unit === 'min' ? 5 : 0.5))}
+            onClick={() => setHabitValue(habit.id, (parseFloat(val) || 0) + 0.5)}
             className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-700 text-text-muted hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center cursor-pointer font-bold text-lg transition-colors"
             aria-label="Aumentar"
           >+</button>

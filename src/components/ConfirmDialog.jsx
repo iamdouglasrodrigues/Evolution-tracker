@@ -13,7 +13,7 @@ export default function ConfirmDialog({ open, onClose, onConfirm, title = 'Confi
       <div className="flex gap-2 justify-end">
         <button
           onClick={onClose}
-          className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 hover:bg-gray-200 text-text cursor-pointer"
+          className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-text cursor-pointer transition-colors"
         >
           Cancelar
         </button>

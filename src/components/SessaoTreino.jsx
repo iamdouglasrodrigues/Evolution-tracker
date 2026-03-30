@@ -56,7 +56,7 @@ function RestTimer() {
       </button>
       <button
         onClick={() => { setSeconds(0); setRunning(false) }}
-        className="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 dark:bg-gray-700 text-text-muted cursor-pointer"
+        className="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 dark:bg-gray-700 text-text-muted hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer transition-colors"
       >
         Reset
       </button>
